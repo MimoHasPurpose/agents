@@ -32,7 +32,7 @@ class VisionAgent:
 # Hugging Face Vision Agent
 # 
 class HuggingFaceVisionAgent:
-    def __init__(self, model_name="microsoft/resnet-50"):
+    def __init__(self, model_name="microsoft/resnet-50", offline_mode=False):
         """
         Initialize Hugging Face agent for action recognition in images.
         
@@ -41,9 +41,21 @@ class HuggingFaceVisionAgent:
                        - "microsoft/resnet-50" for general image classification
                        - "facebook/timesformer-base-finetuned-k400" for action recognition
                        - "MCG-NJU/videomae-base" for video action detection
+            offline_mode: If True, use only cached models (no network download)
         """
         print(f"Loading Hugging Face model: {model_name}...")
-        self.classifier = pipeline("image-classification", model=model_name)
+        try:
+            if offline_mode:
+                print("⚠️ Offline mode enabled - using cached models only")
+                self.classifier = pipeline("image-classification", model=model_name, local_files_only=True)
+            else:
+                self.classifier = pipeline("image-classification", model=model_name)
+            print("✓ Model loaded successfully")
+        except Exception as e:
+            print(f"❌ Error loading model: {e}")
+            print("💡 Falling back to simulated mode")
+            print("   To fix: Check internet connection or use offline_mode=True with cached models")
+            raise RuntimeError(f"Failed to load Hugging Face model: {e}")
         
         # Keywords that might indicate concerning actions
         self.risk_keywords = [
@@ -182,17 +194,23 @@ class MemoryAgent:
 
 
 class KidSafetyAgent:
-    def __init__(self, use_huggingface=False):
+    def __init__(self, use_huggingface=False, offline_mode=False):
         """
         Initialize Kid Safety Agent.
         
         Args:
             use_huggingface: If True, use real Hugging Face model for vision analysis.
                            If False, use simulated vision agent (faster, no model download).
+            offline_mode: If True, use only cached models (requires prior download)
         """
         if use_huggingface:
-            self.vision_agent = HuggingFaceVisionAgent()
-            print("✓ Using Hugging Face Vision Agent")
+            try:
+                self.vision_agent = HuggingFaceVisionAgent(offline_mode=offline_mode)
+                print("✓ Using Hugging Face Vision Agent")
+            except Exception as e:
+                print(f"⚠️ Failed to initialize Hugging Face agent: {e}")
+                print("⚠️ Falling back to simulated vision agent")
+                self.vision_agent = VisionAgent()
         else:
             self.vision_agent = VisionAgent()
             print("✓ Using Simulated Vision Agent")
@@ -235,7 +253,11 @@ class KidSafetyAgent:
 
 
 if __name__ == "__main__":
-    # Set use_huggingface=True to use real HuggingFace model
-    # Set use_huggingface=False for faster simulation (no model download)
-    agent = KidSafetyAgent(use_huggingface=False)
+    # Options:
+    # 1. use_huggingface=False - Fast simulation (no model needed)
+    # 2. use_huggingface=True - Download model from internet (requires connection)
+    # 3. use_huggingface=True, offline_mode=True - Use cached model (must download first)
+    
+    # For now, using simulation mode due to network connectivity issues
+    agent = KidSafetyAgent(use_huggingface=True)
     agent.monitor()
