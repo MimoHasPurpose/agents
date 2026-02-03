@@ -53,7 +53,7 @@ def main():
     print(f"\n{successful}/{len(models)} models downloaded successfully")
     
     if successful > 0:
-        print("\n💡 You can now use offline mode:")
+        print("\nYou can now use offline mode:")
         print("   agent = KidSafetyAgent(use_huggingface=True, offline_mode=True)")
 
 if __name__ == "__main__":

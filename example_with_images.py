@@ -1,6 +1,4 @@
-"""
-Example: Using Hugging Face Vision Agent with real images
-"""
+
 
 from main import HuggingFaceVisionAgent
 from PIL import Image
@@ -41,7 +39,7 @@ def main():
             print(f"  - {pred['label']}: {pred['score']:.3f}")
         
         if result['concerns']:
-            print("\n⚠️ Concerns detected:")
+            print("\n Concerns detected:")
             for concern in result['concerns']:
                 print(f"  - {concern['action']}: {concern['confidence']:.3f}")
     
